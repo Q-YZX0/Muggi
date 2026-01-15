@@ -71,11 +71,11 @@ export const WalletProvider = {
         }
     },
 
-    async register(username: string, password: string): Promise<any> {
+    async register(username: string, password: string, privateKey?: string): Promise<any> {
         const res = await fetch(getApiUrl('/api/auth/register'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
+            body: JSON.stringify({ username, password, privateKey })
         });
         return await res.json();
     },

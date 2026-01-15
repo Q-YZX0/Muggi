@@ -5,6 +5,7 @@ import WaraLinkManager from '@/components/WaraLinkManager'
 import WaraPlayButton from '@/components/WaraPlayButton'
 import VotingButtons from '@/components/VotingButtons'
 import RequestMediaButton from '@/components/RequestMediaButton'
+import SovereignRegistryButton from '@/components/SovereignRegistryButton'
 import WatchedBadge from '@/components/WatchedBadge'
 import Link from 'next/link'
 import RegisterOnChainButton from '@/components/RegisterOnChainButton'
@@ -118,11 +119,11 @@ export default async function TVShowPage({ params, searchParams }: { params: Pro
                         <div className="flex justify-between items-start mb-4">
                             <h1 className="text-4xl md:text-5xl font-bold text-white drop-shadow-lg">{media.base.title}</h1>
                             <div className="flex flex-col gap-2">
-                                <RequestMediaButton
-                                    mediaId={media.base.id || id}
-                                    initialCount={requestCount}
-                                    hasRequested={userHasRequested}
-                                    isLoggedIn={true}
+                                <SovereignRegistryButton
+                                    sourceId={media.base.id || id}
+                                    type="tv"
+                                    initialStatus={media.base.status}
+                                    title={media.base.title}
                                 />
                                 <WatchedBadge tmdbId={id} season={selectedSeason} episode={selectedEpisode} />
                             </div>
@@ -296,11 +297,11 @@ export default async function TVShowPage({ params, searchParams }: { params: Pro
                             {links.length === 0 && (
                                 <li className="bg-gray-800/50 border border-dashed border-gray-700 rounded-lg p-6 text-center">
                                     <p className="text-gray-400 mb-4">No content found for this specific episode.</p>
-                                    <RequestMediaButton
-                                        mediaId={media.base.id || id}
-                                        initialCount={requestCount}
-                                        hasRequested={userHasRequested}
-                                        isLoggedIn={true}
+                                    <SovereignRegistryButton
+                                        sourceId={media.base.id || id}
+                                        type="tv"
+                                        initialStatus={media.base.status}
+                                        title={media.base.title}
                                     />
                                 </li>
                             )}

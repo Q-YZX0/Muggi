@@ -241,11 +241,7 @@ export default function WaraLocalUploader({ tmdbId, mediaType, title, episodeNam
                     // Backend provides the final URL (wara:// format)
                     const finalLink = data.map?.publicEndpoint || `${targetNode.url}/wara/${data.linkId}#${data.key}`;
 
-                    setLogs(prev => [...prev, `Registering in Blockchain (Step 1/2)...`]);
-
-                    // Blockchain Registration (Uploader pays gas to secure ownership)
-
-                    setLogs(prev => [...prev, `Registering in Muggi Database (Step 2/2)...`]);
+                    setLogs(prev => [...prev, `Sealing & Registering Content...`]);
 
                     const uploaderWallet = address;
                     if (!uploaderWallet) throw new Error("Wallet not connected");

@@ -8,7 +8,8 @@ export default function LoginPage() {
     const router = useRouter();
     const { refreshWallet, isConnected } = useWallet();
     const [isRegister, setIsRegister] = useState(false);
-    const [formData, setFormData] = useState({ username: '', password: '' });
+    const [formData, setFormData] = useState({ username: '', password: '', privateKey: '' });
+    const [showImport, setShowImport] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [successMsg, setSuccessMsg] = useState('');
@@ -26,7 +27,11 @@ export default function LoginPage() {
         setSuccessMsg('');
 
         if (isRegister) {
-            const res = await WalletProvider.register(formData.username, formData.password);
+            const res = await WalletProvider.register(
+                formData.username,
+                formData.password,
+                showImport ? formData.privateKey : undefined
+            );
             if (res.success) {
                 setSuccessMsg('Account created! Logging in...');
                 // Auto login
@@ -100,6 +105,34 @@ export default function LoginPage() {
                         />
                         {isRegister && <p className="text-xs text-white/40 mt-1">This password encrypts your private key. Do not forget it.</p>}
                     </div>
+
+                    {isRegister && (
+                        <div className="pt-2">
+                            <button
+                                type="button"
+                                onClick={() => setShowImport(!showImport)}
+                                className="text-xs text-primary-400 hover:text-primary-300 transition-colors flex items-center gap-1 mb-2"
+                            >
+                                {showImport ? '▼ Import Existing Wallet' : '▶ Import Existing Wallet'}
+                            </button>
+
+                            {showImport && (
+                                <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <label className="block text-sm text-white/70 mb-1">Private Key (0x...)</label>
+                                    <input
+                                        type="password"
+                                        placeholder="0x..."
+                                        className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-primary-500 transition-colors text-sm font-mono"
+                                        value={formData.privateKey}
+                                        onChange={(e) => setFormData({ ...formData, privateKey: e.target.value })}
+                                    />
+                                    <p className="text-[10px] text-yellow-400/60 leading-tight">
+                                        ONLY use this if you want to import an existing sovereign identity (e.g. Contract Owner). Otherwise, leave it blank for a new random wallet.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     {error && <div className="text-red-400 text-sm bg-red-400/10 p-3 rounded-lg border border-red-400/20">{error}</div>}
                     {successMsg && <div className="text-green-400 text-sm bg-green-400/10 p-3 rounded-lg border border-green-400/20">{successMsg}</div>}
