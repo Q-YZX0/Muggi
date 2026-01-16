@@ -30,7 +30,7 @@ if (!(Test-Path $WARA_NODE_DIR)) {
     # Verificar si hay script de despliegue para Windows (setup_node.ps1)
     if (Test-Path "setup.ps1") {
         Write-Host "Ejecutando script de configuracion de WaraNode..." -ForegroundColor Cyan
-        powershell -NoProfile -ExecutionPolicy Bypass -File ".\setup_node.ps1"
+        powershell -NoProfile -ExecutionPolicy Bypass -File ".\setup.ps1"
     }
     elseif (Test-Path "setup.sh") {
         Write-Host "Nodo descargado. Se recomienda usar Git Bash para ejecutar deploy_node.sh si es necesario." -ForegroundColor Blue
@@ -50,6 +50,6 @@ Write-Host "-------------------------------------------------------" -Foreground
 Write-Host "Configuracion de ecosistema Muggi completa." -ForegroundColor Green
 Write-Host ""
 Write-Host "Para iniciar el desarrollo:"
-Write-Host "  npm run dev          # Inicia el Frontend (http://localhost:3000)"
-Write-Host "  npm run dev:node     # Inicia el Nodo (en paralelo)"
+Write-Host "  Ejecuta 'start.bat' para abrir todo (Frontend + Nodo + Navegador)"
+Write-Host "  O usa: npm run dev:all"
 Write-Host "-------------------------------------------------------"

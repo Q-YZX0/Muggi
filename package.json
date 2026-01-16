@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "concurrently \"next dev\"",
+    "dev:all": "concurrently \"next dev\" \"cd wara && npm run start\"",
     "dev:node": "concurrently \"cd wara && npm run start\"",
     "build": "next build",
     "start": "next start",
