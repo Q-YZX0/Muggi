@@ -32,8 +32,13 @@ async function fetchNodeLinks(id: string, type: 'tv' | 'movie', season?: number,
         if (season) url += `&season=${season}`;
         if (episode) url += `&episode=${episode}`;
         const res = await fetch(url, { cache: 'no-store' });
-        return await res.json();
-    } catch (e) { return []; }
+        const data = await res.json();
+        // Ensure we always return an array
+        return Array.isArray(data) ? data : [];
+    } catch (e) {
+        console.error("fetchNodeLinks error:", e);
+        return [];
+    }
 }
 
 export default async function MoviePage({ params, searchParams }: { params: Promise<{ id: string }>, searchParams: Promise<{ play?: string }> }) {

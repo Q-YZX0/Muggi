@@ -39,7 +39,7 @@ export default function SovereignRegistryButton({
                 if (lookupData.waraId) {
                     setWaraId(lookupData.waraId);
                     // 3. Get Gov Status
-                    const statusRes = await fetch(getApiUrl(`/api/governance/status/${lookupData.waraId}`));
+                    const statusRes = await fetch(getApiUrl(`/api/media/status/${lookupData.waraId}`));
                     setStatusData(await statusRes.json());
                 }
             } catch (e) {
@@ -83,7 +83,7 @@ export default function SovereignRegistryButton({
     const handleVote = async (side: 1 | -1) => {
         setLoading(true);
         try {
-            const res = await fetch(getApiUrl('/api/governance/vote'), {
+            const res = await fetch(getApiUrl('/api/media/vote'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -105,7 +105,7 @@ export default function SovereignRegistryButton({
     const handleResolve = async () => {
         setLoading(true);
         try {
-            const res = await fetch(getApiUrl('/api/governance/resolve'), {
+            const res = await fetch(getApiUrl('/api/media/resolve'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

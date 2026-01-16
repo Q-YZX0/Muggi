@@ -21,7 +21,7 @@ Muggi isn't just a UI; it's your personal gateway to a global, user-owned networ
 
 Muggi is built using the latest industry standards for web and blockchain:
 
--   **Frontend**: Next.js 20 (App Router), React 20, Tailwind CSS v4.
+-   **Frontend**: Next.js 15 (App Router), React 19, Tailwind CSS v4.
 -   **Node Connection**: Direct P2P API interaction with `WaraNode`.
 -   **Local Storage**: Prisma & SQLite for local profiles and caching.
 
@@ -36,10 +36,19 @@ Setting up your Sovereign Hub is easy and automated.
 -   **Git**
 
 ### 2. Quick Installation
+
+**Linux / macOS:**
 ```bash
 git clone https://github.com/Q-YZX0/Muggi.git
 cd Muggi
 bash ./setup.sh
+```
+
+**Windows (PowerShell):**
+```powershell
+git clone https://github.com/Q-YZX0/Muggi.git
+cd Muggi
+.\setup.ps1
 ```
 
 ### 3. Launching

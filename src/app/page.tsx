@@ -146,7 +146,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ q
             const isAvailable = ext.isAvailable;
 
             return (
-              <Link key={`${movie.tmdbId}-${index}`} href={`/${movie.type === 'tv' ? 'tv' : 'movie'}/${movie.tmdbId}`} className="block group" >
+              <Link key={`${movie.sourceId || movie.waraId}-${index}`} href={`/${movie.type === 'tv' ? 'tv' : 'movie'}/${movie.sourceId}`} className="block group" >
                 <div className={`aspect-[2/3] bg-gray-800 rounded-xl overflow-hidden relative shadow-lg transition-all group-hover:-translate-y-2 group-hover:ring-2 
                     ${isAvailable
                     ? 'group-hover:shadow-green-500/20 group-hover:ring-green-500/50 ring-1 ring-green-900/30'

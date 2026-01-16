@@ -27,6 +27,9 @@ export default function Navbar() {
                 <Link href="/premium" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-4 rounded-lg font-bold transition-all" style={{ paddingBlock: 'calc(var(--spacing) * 2.7)' }}>
                     ✨ Premium
                 </Link>
+                <Link href="/airdrop" className="text-yellow-400 hover:text-yellow-300 font-bold transition-colors">
+                    🎁 Airdrop
+                </Link>
                 <WalletConnect />
             </div>
         </nav>
