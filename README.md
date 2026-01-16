@@ -25,20 +25,19 @@ Muggi addresses the problem of centralized censorship and lack of trust in P2P n
 
 ## 🚀 Key Features (v0.1.0)
 
-### 🔗 Web3 Ownership & Reputation
-*   **Proof of Content**: Every link submitted is hashed and registered on the blockchain.
-*   **Community Voting**: Upvote valid content, downvote fakes.
-*   **Trust Score**: A transparent, on-chain metric calculated from community consensus (Upvotes - Downvotes).
-*   **Leaderboard**: Visualize the top-trusted hosters and the most verified content in the ecosystem.
+### 🏛️ Community Governance (DAO)
+*   **Media Proposals**: Submit new content to the global registry directly from the UI.
+*   **Decentralized Voting**: The community approves or rejects media via on-chain consensus, replacing central moderators.
+*   **Trust Economy**: Verified content gains visibility, while malicious links are buried by community vote.
 
-### 📡 Local P2P Node (`wara-node`)
-*   **Self-Hosting**: Run your own node to host media files directly from your PC.
-*   **Direct Streaming**: Stream verified content directly from peers without central intermediaries.
-*   **Gossip Protocol**: Nodes discover each other and share metadata decentrally.
+### 📡 Advanced P2P Architecture
+*   **WaraID Manifests**: A new global identification system for secure content discovery.
+*   **Atomic Upload Flow**: Integrated "Sealing" process that verifies physical content availability before registry.
+*   **Live Stream Routing**: Direct peer-to-peer streaming with automated metadata sharding (Posters & Backdrops).
 
-### 🛡️ Decentralized Ads Manager (In Development)
-*   **User-Centric**: Ads are funded and managed by users via smart contracts.
-*   **Consensus Moderation**: Bad ads are flagged and removed by community vote, not by a central authority.
+### 🛡️ Sentinel & Monitoring
+*   **Node Self-Update**: Background service ensures your node's public IP is always synchronized in the registry.
+*   **Security Cockpit**: Manage your node's security modes (Local vs Remote) directly from the dashboard.
 
 ## 🛠️ Technology Stack
 *   **Frontend**: Next.js, React, TailwindCSS.
@@ -52,23 +51,25 @@ Muggi addresses the problem of centralized censorship and lack of trust in P2P n
 *   Node.js (v18+)
 *   Git
 
-### 2. Clone & Install
+### 2. Quick Setup (Automated)
+This script will install Node.js (if missing), fetch the required `wara-node` component and set up the entire environment.
+
 ```bash
 git clone https://github.com/Q-YZX0/Muggi.git
 cd Muggi
-npm install
+chmod +x setup.sh
+./setup.sh
 ```
 
 ### 3. Run the Development Environment
-This starts both the Muggi Frontend and the Wara Node locally.
-```bash
-npm run dev
-```
+Once configured, you can start components separately:
+- **Frontend**: `npm run dev`
+- **Node**: `npm run dev:node`
 *   **Frontend**: `http://localhost:3000`
 *   **Node Dashboard**: `http://localhost:21746`
 
 ## 🤝 Contributing
-We believe in open source and community governance. Check out [CONTRIBUTING.md](docs/CONTRIBUTING.md) to join us in building the future of decentralized streaming.
+We believe in open source and community governance. Check out [CONTRIBUTING.md](CONTRIBUTING.md) to join us in building the future of decentralized streaming.
 
 ## 📄 License
 MIT License. Created by the Muggi Community.

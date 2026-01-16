@@ -39,4 +39,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 # wara data
-wara_store/
+/wara
+/wara/wara_store/
