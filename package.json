@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "concurrently \"next dev\"",
-    "dev:all": "concurrently \"next dev\" \"cd wara && npm run start\"",
+    "dev:all": "concurrently \"cd wara && npm run start\" \"node -e \\\"setTimeout(() => {}, 5000)\\\" && next dev\"",
     "dev:node": "concurrently \"cd wara && npm run start\"",
     "build": "next build",
     "start": "next start",
