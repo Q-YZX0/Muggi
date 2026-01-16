@@ -22,7 +22,6 @@ Muggi isn't just a UI; it's your personal gateway to a global, user-owned networ
 Muggi is built using the latest industry standards for web and blockchain:
 
 -   **Frontend**: Next.js 20 (App Router), React 20, Tailwind CSS v4.
--   **Web3**: Ethers.js v6, EIP-712 Signatures (Gasless).
 -   **Node Connection**: Direct P2P API interaction with `WaraNode`.
 -   **Local Storage**: Prisma & SQLite for local profiles and caching.
 
