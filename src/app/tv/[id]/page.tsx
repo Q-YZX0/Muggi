@@ -40,7 +40,8 @@ async function fetchNodeLinks(id: string, type: 'tv' | 'movie', season?: number,
         if (season) url += `&season=${season}`;
         if (episode) url += `&episode=${episode}`;
         const res = await fetch(url, { cache: 'no-store' });
-        return await res.json();
+        const data = await res.json();
+        return Array.isArray(data) ? data : [];
     } catch (e) { return []; }
 }
 

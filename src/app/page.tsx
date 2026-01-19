@@ -54,6 +54,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ q
     } else if (activeTab === 'available') {
       const res = await fetch(getApiUrl(`/api/catalog/recent?genre=${encodeURIComponent(genre || '')}`));
       movies = await res.json();
+    } else if (activeTab === 'unverified') {
+      const res = await fetch(getApiUrl(`/api/catalog/unverified?genre=${encodeURIComponent(genre || '')}`));
+      movies = await res.json();
     } else {
       // Requests
       const res = await fetch(getApiUrl(`/api/catalog/requests?genre=${encodeURIComponent(genre || '')}`));
@@ -89,10 +92,16 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ q
             Available in Network
           </Link>
           <Link
+            href={`/?tab=unverified${genre ? `&genre=${genre}` : ''}`}
+            className={`px-6 py-3 font-bold transition-all ${activeTab === 'unverified' ? 'text-yellow-400 border-b-2 border-yellow-400' : 'text-gray-500 hover:text-gray-300'}`}
+          >
+            Community Uploads
+          </Link>
+          <Link
             href={`/?tab=requests${genre ? `&genre=${genre}` : ''}`}
             className={`px-6 py-3 font-bold transition-all ${activeTab === 'requests' ? 'text-orange-400 border-b-2 border-orange-400' : 'text-gray-500 hover:text-gray-300'}`}
           >
-            Requested Community
+            Requests (Missing)
           </Link>
         </div>
       )}
@@ -143,6 +152,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ q
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
           {movies.map((ext: any, index: number) => {
             const movie = ext.base;
+            if (!movie) return null; // Defensive check against malformed data
             const isAvailable = ext.isAvailable;
 
             return (
@@ -152,9 +162,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ q
                     ? 'group-hover:shadow-green-500/20 group-hover:ring-green-500/50 ring-1 ring-green-900/30'
                     : 'group-hover:shadow-blue-500/20 group-hover:ring-blue-500/50 opacity-80 group-hover:opacity-100'
                   }`}>
-                  {movie.posterPath ? (
+                  {(movie.posterPath || movie.poster_path) ? (
                     <img
-                      src={`https://image.tmdb.org/t/p/w500${movie.posterPath}`}
+                      src={(movie.posterPath || movie.poster_path).startsWith('http') ? (movie.posterPath || movie.poster_path) : `https://image.tmdb.org/t/p/w500${movie.posterPath || movie.poster_path}`}
                       alt={movie.title}
                       loading="lazy"
                       className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 ${!isAvailable ? 'grayscale-[0.5] group-hover:grayscale-0' : ''}`}

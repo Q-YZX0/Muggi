@@ -145,6 +145,8 @@ export default function SovereignRegistryButton({
                 <div className="bg-blue-600/20 text-blue-300 px-3 py-1 rounded text-xs border border-blue-500/30 text-center">
                     ⏳ {statusData.period.remainingHours}h Left | 👍 {statusData.votes.up} vs 👎 {statusData.votes.down}
                 </div>
+
+                {/* Voting Buttons for Everyone */}
                 <div className="flex gap-2">
                     <button onClick={() => handleVote(1)} disabled={loading} className="flex-1 bg-green-600 hover:bg-green-500 text-white py-2 rounded font-bold transition-all active:scale-95">
                         👍 Yes
@@ -153,6 +155,19 @@ export default function SovereignRegistryButton({
                         👎 No
                     </button>
                 </div>
+
+                {/* ADMIN OVERRIDE: Bless directly during voting */}
+                {isOwner && (
+                    <div className="mt-2 pt-2 border-t border-gray-700">
+                        <button
+                            onClick={handleStart}
+                            disabled={loading}
+                            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white py-2 rounded font-bold text-sm shadow-lg border border-blue-400/30"
+                        >
+                            🏛️ Bless to Approve Now (Admin)
+                        </button>
+                    </div>
+                )}
             </div>
         );
     }
