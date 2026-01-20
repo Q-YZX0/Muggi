@@ -17,7 +17,7 @@ export default function NetworkDashboard({ activeNodeUrl }: { activeNodeUrl: str
 
     useEffect(() => {
         // Load current TMDB key from node
-        fetch(getApiUrl('/api/tmdb-key'))
+        fetch(getApiUrl('/api/catalog/tmdb-key'))
             .then(res => res.json())
             .then(data => setTmdbKey(data.apiKey || ''))
             .catch(console.error);
@@ -61,7 +61,7 @@ export default function NetworkDashboard({ activeNodeUrl }: { activeNodeUrl: str
         setTmdbLoading(true);
         setTmdbMessage('');
         try {
-            const res = await fetch(getApiUrl('/api/tmdb-key'), {
+            const res = await fetch(getApiUrl('/api/catalog/tmdb-key'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ apiKey: tmdbKey })

@@ -531,7 +531,7 @@ export default function WaraNodeDashboard() {
             const headers: Record<string, string> = {};
             if (activeNode.key) headers['X-Wara-Key'] = activeNode.key;
 
-            const res = await fetch(`${activeNode.url}/admin/delete/${linkId}`, {
+            const res = await fetch(`${activeNode.url}/admin/link/delete/${linkId}`, {
                 method: 'DELETE',
                 headers
             });

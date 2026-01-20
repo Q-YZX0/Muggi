@@ -57,7 +57,7 @@ export default function ProfilePage() {
 
         if (userId) {
             // Load from node
-            fetch(`${NODE_API}/api/profile/preferences?userId=${userId}`)
+            fetch(`${NODE_API}/api/wallet/preferences?userId=${userId}`)
                 .then(r => r.json())
                 .then(data => {
                     if (data.preferredLanguage) {
@@ -79,7 +79,7 @@ export default function ProfilePage() {
         const addr = WalletProvider.getAddress();
         if (addr && userId) {
             try {
-                await fetch(`${NODE_API}/api/profile/preferences`, {
+                await fetch(`${NODE_API}/api/wallet/preferences`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ userId, preferredLanguage: newLang })
