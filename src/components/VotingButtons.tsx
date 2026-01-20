@@ -63,7 +63,7 @@ export default function VotingButtons({
             setMessage('Signing & Relaying vote...')
 
             // Call Local Signer & Relayer (backend determines target URL securely)
-            const res = await fetch(getApiUrl('/api/votes/signer'), {
+            const res = await fetch(getApiUrl('/api/links/vote/signer'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

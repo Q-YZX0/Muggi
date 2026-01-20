@@ -188,8 +188,8 @@ export default function ProfilePage() {
                 if (node.id === 'local' && token) headers['X-Auth-Token'] = token;
 
                 const pendingUrl = node.id === 'local'
-                    ? `${node.url}/api/votes/pending`
-                    : `${node.url}/api/votes/pending?wallet=${targetAddress}`;
+                    ? `${node.url}/api/links/vote/pending`
+                    : `${node.url}/api/links/vote/pending?wallet=${targetAddress}`;
 
                 const myRes = await fetch(pendingUrl, {
                     headers,
@@ -201,8 +201,8 @@ export default function ProfilePage() {
                 }
 
                 const receivedUrl = node.id === 'local'
-                    ? `${node.url}/api/votes/received`
-                    : `${node.url}/api/votes/received?wallet=${targetAddress}`;
+                    ? `${node.url}/api/links/vote/received`
+                    : `${node.url}/api/links/vote/received?wallet=${targetAddress}`;
 
                 const recRes = await fetch(receivedUrl, {
                     headers,

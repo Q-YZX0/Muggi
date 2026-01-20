@@ -61,7 +61,7 @@ export async function updatePlaybackProgress(data: {
     isEnded?: boolean
 }) {
     try {
-        const res = await fetch(`${NODE_API}/wara/user/progress`, {
+        const res = await fetch(`${NODE_API}/stream/user/progress`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)

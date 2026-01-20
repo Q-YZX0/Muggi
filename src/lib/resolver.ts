@@ -30,8 +30,8 @@ export async function resolveStreamMetadata(
         try {
             if (logCallback) logCallback(`Probing source: ${source.url.substring(0, 40)}...`);
 
-            // Format: url is something like http://node:port/wara/SALT
-            // Metadata is at http://node:port/wara/SALT/map
+            // Format: url is something like http://node:port/stream/SALT
+            // Metadata is at http://node:port/stream/SALT/map
             const metaUrl = source.url.endsWith('/') ? `${source.url}map` : `${source.url}/map`;
 
             const res = await fetch(metaUrl, {
@@ -46,7 +46,7 @@ export async function resolveStreamMetadata(
             const map: WaraMap = await res.json();
 
             // The final endpoint is the base URL of the source
-            // e.g. http://node:port/wara/SALT
+            // e.g. http://node:port/stream/SALT
             return {
                 map,
                 sourceUsed: source,

@@ -204,7 +204,7 @@ export default function WaraPlayer({ links, forcedLinkId, nextEpisodeUrl, tmdbId
                 wallet: wallet || '',
                 linkId: specificLinkId
             });
-            const res = await fetch(`${nodeBaseUrl}/wara/access/auth?${query.toString()}`);
+            const res = await fetch(`${nodeBaseUrl}/stream/auth?${query.toString()}`);
             if (!res.ok) throw new Error("Node auth check failed");
 
             const decision = await res.json();
