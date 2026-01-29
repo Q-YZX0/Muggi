@@ -21,7 +21,7 @@ export default function MirrorButton({ sourceUrl, tmdbId, mediaType, onMirrored 
             const [baseUrl, key] = sourceUrl.split('#');
 
             // 2. Call Local Node Mirror
-            const res = await fetch(getApiUrl('/admin/mirror'), {
+            const res = await fetch(getApiUrl('/api/manager/mirror'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ outputUrl: baseUrl })

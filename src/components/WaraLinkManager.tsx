@@ -31,7 +31,7 @@ export default function WaraLinkManager({ linkUrl, onUpdate, dbLinkId }: { linkU
             } catch (e) { }
 
             const xhr = new XMLHttpRequest();
-            xhr.open('POST', `${nodeBaseUrl}/admin/subtitle`, true);
+            xhr.open('POST', `${nodeBaseUrl}/api/manager/subtitle`, true);
             if (authKey) xhr.setRequestHeader('X-Wara-Key', authKey);
 
             xhr.setRequestHeader('X-Link-Id', linkId);
@@ -75,7 +75,7 @@ export default function WaraLinkManager({ linkUrl, onUpdate, dbLinkId }: { linkU
 
             // 3. Delete from Node
             try {
-                const res = await fetch(`${nodeBaseUrl}/admin/delete/${linkId}`, {
+                const res = await fetch(`${nodeBaseUrl}/api/manager/storage-links/${linkId}`, {
                     method: 'DELETE',
                     headers: { 'X-Wara-Key': authKey }
                 });

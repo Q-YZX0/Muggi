@@ -102,7 +102,7 @@ export default function ProfilePage() {
         try {
             const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
             if (currentUser.id) {
-                const res = await fetch(`${NODE_API}/api/remote-nodes?userId=${currentUser.id}`);
+                const res = await fetch(`${NODE_API}/api/manager/node?userId=${currentUser.id}`);
                 if (res.ok) {
                     const { nodes } = await res.json();
                     const remoteNodes = nodes.map((n: any) => ({
@@ -128,8 +128,8 @@ export default function ProfilePage() {
 
                 // If local node, we don't need ?hoster since the node knows our session
                 const url = node.id === 'local'
-                    ? `${node.url}/admin/proofs`
-                    : `${node.url}/admin/proofs?hoster=${targetAddress}`;
+                    ? `${node.url}/api/manager/proofs`
+                    : `${node.url}/api/manager/proofs?hoster=${targetAddress}`;
 
                 const res = await fetch(url, {
                     headers,
@@ -163,7 +163,7 @@ export default function ProfilePage() {
         try {
             const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
             if (currentUser.id) {
-                const res = await fetch(`${NODE_API}/api/remote-nodes?userId=${currentUser.id}`);
+                const res = await fetch(`${NODE_API}/api/manager/node?userId=${currentUser.id}`);
                 if (res.ok) {
                     const { nodes } = await res.json();
                     const remoteNodes = nodes.map((n: any) => ({
@@ -187,29 +187,16 @@ export default function ProfilePage() {
                 if (node.key) headers['X-Wara-Key'] = node.key;
                 if (node.id === 'local' && token) headers['X-Auth-Token'] = token;
 
-                const pendingUrl = node.id === 'local'
-                    ? `${node.url}/api/links/vote/pending`
-                    : `${node.url}/api/links/vote/pending?wallet=${targetAddress}`;
+                const url = node.id === 'local'
+                    ? `${node.url}/api/manager/votes`
+                    : `${node.url}/api/manager/votes?wallet=${targetAddress}`;
 
-                const myRes = await fetch(pendingUrl, {
+                const res = await fetch(url, {
                     headers,
                     signal: AbortSignal.timeout(3000)
                 });
-                if (myRes.ok) {
-                    const { votes } = await myRes.json();
-                    allMyVotes.push(...votes.map((v: any) => ({ ...v, _originNode: node })));
-                }
-
-                const receivedUrl = node.id === 'local'
-                    ? `${node.url}/api/links/vote/received`
-                    : `${node.url}/api/links/vote/received?wallet=${targetAddress}`;
-
-                const recRes = await fetch(receivedUrl, {
-                    headers,
-                    signal: AbortSignal.timeout(3000)
-                });
-                if (recRes.ok) {
-                    const { votes } = await recRes.json();
+                if (res.ok) {
+                    const { votes } = await res.json();
                     allReceivedVotes.push(...votes.map((v: any) => ({ ...v, _originNode: node })));
                 }
 
@@ -368,7 +355,7 @@ export default function ProfilePage() {
                 for (const url in nodeCleanup) {
                     const { key, filenames } = nodeCleanup[url];
                     try {
-                        await fetch(`${url}/admin/proofs/delete`, {
+                        await fetch(`${url}/api/manager/proofs/delete`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'X-Wara-Key': key },
                             body: JSON.stringify({ filenames })

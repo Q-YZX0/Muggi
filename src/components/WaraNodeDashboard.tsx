@@ -207,7 +207,7 @@ export default function WaraNodeDashboard() {
             if (!currentUser.id) return;
 
             try {
-                const response = await fetch(`${activeNode.url}/api/remote-nodes?userId=${currentUser.id}`);
+                const response = await fetch(`${activeNode.url}/api/manager/node?userId=${currentUser.id}`);
                 if (response.ok) {
                     const { nodes } = await response.json();
                     const mappedNodes = nodes.map((n: any) => ({
@@ -281,7 +281,7 @@ export default function WaraNodeDashboard() {
                 // Since this dashboard supports connecting directly to remote nodes, 
                 // we assume the DB is on the node we are currently connected to (if it holds the profile).
 
-                const response = await fetch(`${activeNode.url}/api/remote-nodes/decrypt`, {
+                const response = await fetch(`${activeNode.url}/api/manager/node-decrypt`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -328,7 +328,7 @@ export default function WaraNodeDashboard() {
                 headers['x-wara-key'] = nodeKey;
             }
 
-            const res = await fetch(`${activeNode.url}/admin/status`, { headers });
+            const res = await fetch(`${activeNode.url}/api/manager/status`, { headers });
             if (!res.ok) {
                 if (res.status === 403) throw new Error('Access Denied: Invalid Admin Key');
                 throw new Error(`Failed to connect to ${activeNode.name}`);
@@ -354,7 +354,7 @@ export default function WaraNodeDashboard() {
             const nodeKey = decryptedKeys[activeNode.id] || activeNode.key;
             if (nodeKey) headers['x-wara-key'] = nodeKey;
 
-            const res = await fetch(`${activeNode.url}/admin/catalog`, { headers });
+            const res = await fetch(`${activeNode.url}/api/manager/storage-links`, { headers });
             if (res.ok) {
                 const data = await res.json();
                 if (data.success && data.content) {
@@ -430,7 +430,7 @@ export default function WaraNodeDashboard() {
         }
 
         try {
-            const response = await fetch(`${activeNode.url}/api/remote-nodes`, {
+            const response = await fetch(`${activeNode.url}/api/manager/node`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -489,7 +489,7 @@ export default function WaraNodeDashboard() {
         if (!currentUser.id) return;
 
         try {
-            const response = await fetch(`${activeNode.url}/api/remote-nodes?nodeId=${id}&userId=${currentUser.id}`, {
+            const response = await fetch(`${activeNode.url}/api/manager/node?nodeId=${id}&userId=${currentUser.id}`, {
                 method: 'DELETE'
             });
 
@@ -513,7 +513,7 @@ export default function WaraNodeDashboard() {
             const headers: Record<string, string> = { 'Content-Type': 'application/json' };
             if (node.key) headers['x-wara-key'] = node.key;
 
-            await fetch(`${node.url}/admin/trackers`, {
+            await fetch(`${node.url}/api/manager/trackers`, {
                 method: 'POST',
                 headers,
                 body: JSON.stringify({ trackers: node.trackers })
@@ -531,7 +531,7 @@ export default function WaraNodeDashboard() {
             const headers: Record<string, string> = {};
             if (activeNode.key) headers['X-Wara-Key'] = activeNode.key;
 
-            const res = await fetch(`${activeNode.url}/admin/link/delete/${linkId}`, {
+            const res = await fetch(`${activeNode.url}/api/manager/storage-links/${linkId}`, {
                 method: 'DELETE',
                 headers
             });

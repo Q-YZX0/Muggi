@@ -161,7 +161,7 @@ export default function WaraPlayer({ links, forcedLinkId, nextEpisodeUrl, tmdbId
 
         // Check if this is the local node's public IP (NAT loopback fix)
         try {
-            const statusRes = await fetch(getApiUrl('/admin/status'));
+            const statusRes = await fetch(getApiUrl('/api/manager/status'));
             if (statusRes.ok) {
                 const status = await statusRes.json();
                 const publicIp = status.network?.publicIp || status.publicIp;

@@ -59,7 +59,7 @@ export function isLocalNodeUrl(url: string): boolean {
  */
 export async function getUserRemoteNodes(userId: string): Promise<Array<{ id: string; url: string; name: string }>> {
     try {
-        const response = await fetch(getApiUrl(`/api/remote-nodes?userId=${userId}`));
+        const response = await fetch(getApiUrl(`/api/manager/node?userId=${userId}`));
         if (!response.ok) {
             throw new Error('Failed to fetch remote nodes');
         }

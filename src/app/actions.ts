@@ -14,7 +14,7 @@ export async function syncNetworkAction() {
         console.log("Delegating P2P Sync to WaraNode...");
 
         // We tell the node to start a sync immediately
-        const res = await fetch(`${NODE_API}/admin/sync`, {
+        const res = await fetch(`${NODE_API}/api/network/sync`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
         });

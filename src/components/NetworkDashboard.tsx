@@ -41,7 +41,7 @@ export default function NetworkDashboard({ activeNodeUrl }: { activeNodeUrl: str
             const adminKey = localStorage.getItem('muggi_admin_key') || '';
 
             log(`Importing to local database...`);
-            const localRes = await fetch(getApiUrl('/admin/sync'), { // Using admin/sync
+            const localRes = await fetch(getApiUrl('/api/network/sync'), { // Using network/sync
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -87,7 +87,7 @@ export default function NetworkDashboard({ activeNodeUrl }: { activeNodeUrl: str
         const adminKey = localStorage.getItem('muggi_admin_key') || '';
 
         try {
-            const res = await fetch(getApiUrl('/admin/peer'), {
+            const res = await fetch(getApiUrl('/api/network/peer'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

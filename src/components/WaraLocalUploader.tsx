@@ -93,7 +93,7 @@ export default function WaraLocalUploader({ tmdbId, mediaType, title, episodeNam
 
         try {
             const xhr = new XMLHttpRequest();
-            xhr.open('POST', `${targetNode.url}/admin/subtitle`, true);
+            xhr.open('POST', `${targetNode.url}/api/manager/subtitle`, true);
 
             // Auth Headers
             if (targetNode.key) xhr.setRequestHeader('X-Wara-Key', targetNode.key);
@@ -209,7 +209,7 @@ export default function WaraLocalUploader({ tmdbId, mediaType, title, episodeNam
             }
 
             const xhr = new XMLHttpRequest();
-            xhr.open('POST', `${targetNode.url}/admin/import`, true);
+            xhr.open('POST', `${targetNode.url}/api/manager/import`, true);
 
             // Auth Headers (Use Token instead of Key)
             if (uploadToken) xhr.setRequestHeader('x-auth-token', uploadToken);
