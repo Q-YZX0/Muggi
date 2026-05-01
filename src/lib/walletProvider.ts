@@ -1,7 +1,7 @@
 import { getApiUrl } from './node-helpers';
 
 // Global state (Lightweight Session)
-let managedSession: { id: string, address: string, username: string, token?: string } | null = null;
+let managedSession: { id: string, address: string, username: string, token?: string, isAdmin?: boolean } | null = null;
 
 export const WalletProvider = {
     // Check for saved session on load
@@ -22,11 +22,41 @@ export const WalletProvider = {
                     if (parsed.authToken) token = parsed.authToken;
                 } catch (e) { }
             }
-            managedSession = { id, address: storedAddress, username: storedUser, token };
+            managedSession = { id, address: storedAddress, username: storedUser, token, isAdmin: !!localStorage.getItem('muggi_admin_pin') };
         } else {
             // Migration from old PK storage?
             const legacyPk = localStorage.getItem('muggi_pk');
             if (legacyPk) this.logout();
+        }
+    },
+
+    async loginWithPin(pin: string): Promise<boolean> {
+        try {
+            // Verify identity and pin (sending current session token to be authorized)
+            const res = await fetch(getApiUrl('/api/network/identity'), {
+                headers: { 
+                    'x-admin-pin': pin,
+                    ...this.getAuthHeaders()
+                }
+            });
+            const data = await res.json();
+
+            if (res.ok && data.nodeAddress) {
+                managedSession = {
+                    id: 'admin',
+                    address: data.nodeAddress,
+                    username: data.nodeName || 'Admin Node',
+                    isAdmin: true
+                };
+
+                // We do NOT store the PIN in localStorage to ensure re-auth on restart
+                localStorage.setItem('muggi_address', data.nodeAddress);
+                localStorage.setItem('muggi_user', data.nodeName || 'Admin Node');
+                return true;
+            }
+            return false;
+        } catch (e) {
+            return false;
         }
     },
 
@@ -88,8 +118,13 @@ export const WalletProvider = {
             localStorage.removeItem('muggi_token'); // Clear Token
             localStorage.removeItem('muggi_pk');
             localStorage.removeItem('currentUser');
+            localStorage.removeItem('muggi_admin_pin');
             window.location.reload();
         }
+    },
+
+    getAdminPin() {
+        return null; // Never return from storage
     },
 
     getWallet() {
@@ -119,5 +154,19 @@ export const WalletProvider = {
 
     getAuthToken() {
         return managedSession?.token || localStorage.getItem('muggi_token');
+    },
+
+    getAuthHeaders(): Record<string, string> {
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        
+        // 1. Try Admin Pin (Disabled for persistent storage)
+        // const pin = this.getAdminPin();
+        // if (pin) headers['x-admin-pin'] = pin;
+        
+        // 2. Try Session Token
+        const token = this.getAuthToken();
+        if (token) headers['x-auth-token'] = token;
+        
+        return headers;
     }
 };

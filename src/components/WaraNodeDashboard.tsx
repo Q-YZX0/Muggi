@@ -4,6 +4,8 @@ import { syncNetworkAction } from '@/app/actions';
 import { useWallet } from '@/hooks/useWallet';
 import NetworkDashboard from './NetworkDashboard';
 import { formatWARA } from '@/lib/node-helpers';
+import { WalletProvider } from '@/lib/walletProvider';
+import router from 'next/router';
 
 // Define strict types for the response
 interface NodeStatus {
@@ -98,6 +100,8 @@ export default function WaraNodeDashboard() {
     const [profilePassword, setProfilePassword] = useState('');
     const [showUnlockModal, setShowUnlockModal] = useState<{ show: boolean, targetNode?: SavedNode } | null>(null);
     const [tempPasswordInput, setTempPasswordInput] = useState('');
+    const [showQuickAuthModal, setShowQuickAuthModal] = useState(false);
+    const [adminPinInput, setAdminPinInput] = useState('');
 
     // Web3 Functions
     const connectWallet = async () => {
@@ -109,8 +113,13 @@ export default function WaraNodeDashboard() {
             const cleanName = name.replace('.wara', '');
             const res = await fetch(`${activeNode.url}/api/registry/node-info/${cleanName}`);
             if (res.ok) {
-                const info = await res.json();
-                setNodeDetails(info);
+                const text = await res.text();
+                try {
+                    const info = JSON.parse(text);
+                    setNodeDetails(info);
+                } catch (e) {
+                    console.error("Node returned non-JSON response (likely RPC limit)", text);
+                }
             }
         } catch (e) {
             console.error("Failed to fetch node details", e);
@@ -200,6 +209,19 @@ export default function WaraNodeDashboard() {
         }
     };
 
+    const handleQuickAuth = async () => {
+        if (!adminPinInput) return;
+        const success = await WalletProvider.loginWithPin(adminPinInput);
+        if (success) {
+            setShowQuickAuthModal(false);
+            setAdminPinInput('');
+            fetchStatus();
+            fetchCatalog();
+        } else {
+            alert("Invalid Admin PIN");
+        }
+    };
+
     useEffect(() => {
         // Load saved nodes from database
         const loadNodes = async () => {
@@ -207,9 +229,12 @@ export default function WaraNodeDashboard() {
             if (!currentUser.id) return;
 
             try {
-                const response = await fetch(`${activeNode.url}/api/manager/node?userId=${currentUser.id}`);
+                const response = await fetch(`${activeNode.url}/api/manager/node?userId=${currentUser.id}`, {
+                    headers: WalletProvider.getAuthHeaders()
+                });
                 if (response.ok) {
-                    const { nodes } = await response.json();
+                    const text = await response.text();
+                    const { nodes } = JSON.parse(text);
                     const mappedNodes = nodes.map((n: any) => ({
                         id: n.id,
                         name: n.name || n.url,
@@ -328,18 +353,37 @@ export default function WaraNodeDashboard() {
                 headers['x-wara-key'] = nodeKey;
             }
 
-            const res = await fetch(`${activeNode.url}/api/manager/status`, { headers });
+            const res = await fetch(`${activeNode.url}/api/manager/status`, {
+                headers: { ...headers, ...WalletProvider.getAuthHeaders() }
+            });
             if (!res.ok) {
-                if (res.status === 403) throw new Error('Access Denied: Invalid Admin Key');
+                if (res.status === 403 || res.status === 401) {
+                    setShowQuickAuthModal(true);
+                    throw new Error('Authorization required (Node restarted?)');
+                }
                 throw new Error(`Failed to connect to ${activeNode.name}`);
             }
-            const data = await res.json();
+            const text = await res.text();
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (e) {
+                console.error("Status parse error", text);
+                throw new Error("Invalid node response (RPC Busy?)");
+            }
 
             // Merge with existing content (don't overwrite empty content from status)
             setStatus((prev: any) => ({
                 ...data,
                 content: prev?.content || []
             }));
+
+            // If we got a 200 OK but the node says we are not authorized, show PIN modal
+            if (data.isAuthorized === false && activeNode.id === 'local') {
+                setShowQuickAuthModal(true);
+            } 
+            // Note: We only close it via handleQuickAuth to avoid race conditions with other fetches
+
             setError('');
         } catch (e) {
             setError((e as Error).message || 'Node Unreachable');
@@ -354,14 +398,25 @@ export default function WaraNodeDashboard() {
             const nodeKey = decryptedKeys[activeNode.id] || activeNode.key;
             if (nodeKey) headers['x-wara-key'] = nodeKey;
 
-            const res = await fetch(`${activeNode.url}/api/manager/storage-links`, { headers });
+            const res = await fetch(`${activeNode.url}/api/manager/storage-links`, {
+                headers: { ...headers, ...WalletProvider.getAuthHeaders() }
+            });
+            if (res.status === 401 || res.status === 403) {
+                setShowQuickAuthModal(true);
+                return;
+            }
             if (res.ok) {
-                const data = await res.json();
-                if (data.success && data.content) {
-                    setStatus((prev: any) => ({
-                        ...prev,
-                        content: data.content
-                    }));
+                const text = await res.text();
+                try {
+                    const data = JSON.parse(text);
+                    if (data.success && data.content) {
+                        setStatus((prev: any) => ({
+                            ...prev,
+                            content: data.content
+                        }));
+                    }
+                } catch (e) {
+                    console.error("Catalog JSON parse error", text);
                 }
             }
         } catch (e) {
@@ -404,7 +459,7 @@ export default function WaraNodeDashboard() {
         };
 
         initNode();
-        const interval = setInterval(fetchStatus, 2000);
+        const interval = setInterval(fetchStatus, 5000); // Slower refresh to respect RPC limits
         return () => clearInterval(interval);
     }, [activeNode, decryptedKeys]);
 
@@ -860,77 +915,84 @@ export default function WaraNodeDashboard() {
                                     Register a permanent name for your node on the Blockchain. This allows users to connect to you even if your IP changes, without using centralized trackers.
                                 </p>
 
-                                <div className="flex gap-4 items-end flex-wrap">
-                                    <div className="flex-1 min-w-[200px]">
-                                        <label className="text-xs text-gray-500 block mb-1">Muggi Name</label>
-                                        <div className="flex items-center">
-                                            <input
-                                                type="text"
-                                                value={desiredName}
-                                                onChange={e => {
-                                                    setDesiredName(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''));
-                                                    setAvailability('idle');
-                                                }}
-                                                placeholder="Domain name (e.g. upflix)"
-                                                className="bg-gray-800 border-gray-700 text-white rounded-l-md px-3 py-2 text-sm w-full focus:outline-none"
-                                            />
-                                            <span className="bg-gray-700 text-gray-400 px-3 py-2 text-sm rounded-r-md border border-l-0 border-gray-700">
-                                                .wara
-                                            </span>
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    {/* Left side: Domain input */}
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="text-xs text-gray-500 block mb-1">Desired Domain</label>
+                                            <div className="flex items-center">
+                                                <input
+                                                    type="text"
+                                                    value={desiredName}
+                                                    onChange={e => {
+                                                        setDesiredName(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''));
+                                                        setAvailability('idle');
+                                                    }}
+                                                    placeholder="Domain name (e.g. upflix)"
+                                                    className="bg-gray-800 border-gray-700 text-white rounded-l-md px-3 py-3 text-sm w-full focus:outline-none focus:ring-1 focus:ring-primary-500"
+                                                />
+                                                <span className="bg-gray-700 text-gray-400 px-4 py-3 text-sm rounded-r-md border border-l-0 border-gray-700 font-bold">
+                                                    .wara
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-3">
+                                            {availability === 'idle' && (
+                                                <button
+                                                    onClick={checkAvailability}
+                                                    disabled={!desiredName || desiredName.length < 3}
+                                                    className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white px-6 py-2 rounded-md font-bold text-sm h-[42px] transition-all shadow-lg shadow-indigo-500/20"
+                                                >
+                                                    Check Availability
+                                                </button>
+                                            )}
+
+                                            {availability === 'checking' && (
+                                                <div className="h-[42px] flex items-center px-4">
+                                                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent"></div>
+                                                </div>
+                                            )}
+
+                                            {availability === 'taken' && (
+                                                <div className="h-[42px] flex items-center px-4 text-red-400 text-sm font-medium">
+                                                    ❌ Already Registered
+                                                </div>
+                                            )}
+
+                                            {availability === 'available' && (
+                                                <div className="flex items-center gap-4">
+                                                    <button
+                                                        onClick={registerName}
+                                                        disabled={isRegistering}
+                                                        className="bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white px-8 py-2 rounded-md font-bold text-sm h-[42px] transition-colors flex items-center gap-2"
+                                                    >
+                                                        {isRegistering ? 'Confirming...' : 'Register Now'}
+                                                    </button>
+                                                    {registrationFee && (
+                                                        <span className="text-xs text-gray-400">Cost: <span className="text-white">{registrationFee} WARA</span></span>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 
-                                    {status.nodeAddress && (
-                                        <div className="mb-4 bg-indigo-900/10 border border-indigo-500/20 p-3 rounded-lg flex flex-col gap-2">
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Technical Node Address</span>
-                                                <span className="text-[10px] bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded font-mono">{status.nodeBalance} WARA</span>
+                                    {/* Right side: Technical Info */}
+                                    <div className="flex flex-col">
+                                        <label className="text-xs text-gray-500 block mb-1">Node Technical Identity</label>
+                                        <div className="bg-indigo-900/10 border border-indigo-500/10 p-4 rounded-xl flex-1 flex flex-col justify-center">
+                                            <div className="flex justify-between items-center mb-2">
+                                                <span className="text-[9px] text-indigo-400 font-bold uppercase tracking-wider">On-Chain Signer</span>
+                                                <span className="text-xs font-bold text-white">{status.nodeBalance} WARA</span>
                                             </div>
-                                            <div className="text-xs font-mono text-gray-300 break-all selection:bg-indigo-500 selection:text-white">
+                                            <div className="text-[11px] font-mono text-gray-400 break-all bg-black/20 p-2 rounded border border-white/5">
                                                 {status.nodeAddress}
                                             </div>
-                                            <div className="text-[10px] text-gray-500">
-                                                This is your node's unique technical ID. It needs enough gas (WARA) to perform autonomous updates.
-                                            </div>
+                                            <p className="text-[10px] text-gray-600 mt-2 leading-tight">
+                                                Funds are used for autonomous on-chain updates (UPnP/IP).
+                                            </p>
                                         </div>
-                                    )}
-
-                                    {availability === 'idle' && (
-                                        <button
-                                            onClick={checkAvailability}
-                                            disabled={!desiredName || desiredName.length < 3}
-                                            className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white px-4 py-2 rounded-md font-bold text-sm h-[38px] transition-all shadow-lg shadow-indigo-500/20"
-                                        >
-                                            Check Availability
-                                        </button>
-                                    )}
-
-                                    {availability === 'checking' && (
-                                        <div className="h-[38px] flex items-center px-4">
-                                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent"></div>
-                                        </div>
-                                    )}
-
-                                    {availability === 'taken' && (
-                                        <div className="h-[38px] flex items-center px-4 text-red-400 text-sm font-medium">
-                                            ❌ Taken
-                                        </div>
-                                    )}
-
-                                    {availability === 'available' && (
-                                        <div className="flex flex-col gap-1">
-                                            <button
-                                                onClick={registerName}
-                                                disabled={isRegistering}
-                                                className="bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white px-6 py-2 rounded-md font-medium text-sm h-[38px] transition-colors flex items-center gap-2"
-                                            >
-                                                {isRegistering ? 'Confirming...' : 'Register Now'}
-                                            </button>
-                                            {registrationFee && (
-                                                <span className="text-[10px] text-gray-400 text-center">Cost: {registrationFee} WARA</span>
-                                            )}
-                                        </div>
-                                    )}
+                                    </div>
                                 </div>
                             </div>
                         ) : (
@@ -1032,37 +1094,46 @@ export default function WaraNodeDashboard() {
                             <div className="mt-6 pt-6 border-t border-gray-700/50">
                                 <div className="flex items-center justify-between mb-3">
                                     <h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest">Sentinel Watchdog</h4>
-                                    <span className={`flex h-2 w-2 rounded-full ${status.sentinel.lastSuccess ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+                                    <span className={`flex h-2 w-2 rounded-full ${status.nodeName && status.sentinel.lastSuccess ? 'bg-green-500 animate-pulse' : 'bg-red-500/50'}`} />
                                 </div>
-                                <div className="space-y-2 text-[10px] font-mono">
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-500">Last Check:</span>
-                                        <span className="text-gray-300">{status.sentinel.lastCheck > 0 ? new Date(status.sentinel.lastCheck).toLocaleTimeString() : 'Waiting...'}</span>
+                                
+                                {!status.nodeName ? (
+                                    <div className="bg-black/20 p-3 rounded-lg border border-white/5">
+                                        <p className="text-[10px] text-gray-500 italic text-center">
+                                            Watchdog inactive. Register a domain to enable on-chain health monitoring.
+                                        </p>
                                     </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-500">Status:</span>
-                                        <span className={status.sentinel.lastSuccess ? "text-green-400" : "text-red-400"}>
-                                            {status.sentinel.lastSuccess ? "OPERATIONAL" : "FAILED"}
-                                        </span>
-                                    </div>
-                                    {status.sentinel.lastUpdateHash && (
+                                ) : (
+                                    <div className="space-y-2 text-[10px] font-mono">
                                         <div className="flex justify-between">
-                                            <span className="text-gray-500">Last TX:</span>
-                                            <a
-                                                href={`https://muggi-scan.io/tx/${status.sentinel.lastUpdateHash}`}
-                                                target="_blank"
-                                                className="text-blue-400 hover:underline truncate ml-4 max-w-[150px]"
-                                            >
-                                                {status.sentinel.lastUpdateHash}
-                                            </a>
+                                            <span className="text-gray-500">Last Check:</span>
+                                            <span className="text-gray-300">{status.sentinel.lastCheck > 0 ? new Date(status.sentinel.lastCheck).toLocaleTimeString() : 'Waiting...'}</span>
                                         </div>
-                                    )}
-                                    {status.sentinel.error && (
-                                        <div className="text-red-400/80 italic mt-1 break-words">
-                                            Error: {status.sentinel.error}
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-500">Status:</span>
+                                            <span className={status.sentinel.lastSuccess ? "text-green-400" : "text-red-400"}>
+                                                {status.sentinel.lastSuccess ? "OPERATIONAL" : "FAILED"}
+                                            </span>
                                         </div>
-                                    )}
-                                </div>
+                                        {status.sentinel.lastUpdateHash && (
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-500">Last TX:</span>
+                                                <a
+                                                    href={`https://muggi-scan.io/tx/${status.sentinel.lastUpdateHash}`}
+                                                    target="_blank"
+                                                    className="text-blue-400 hover:underline truncate ml-4 max-w-[150px]"
+                                                >
+                                                    {status.sentinel.lastUpdateHash}
+                                                </a>
+                                            </div>
+                                        )}
+                                        {status.sentinel.error && (
+                                            <div className="text-red-400/80 italic mt-1 break-words">
+                                                Error: {status.sentinel.error}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
@@ -1188,6 +1259,56 @@ export default function WaraNodeDashboard() {
                         >
                             Unlock Session
                         </button>
+                    </div>
+                </div>
+            )}
+            {/* Quick Auth Modal (Node Restart Recovery) */}
+            {showQuickAuthModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md animate-in fade-in duration-300 px-6">
+                    <div className="glass-panel p-8 rounded-2xl max-w-sm w-full border border-primary-500/30 shadow-2xl shadow-primary-500/10">
+                        <div className="text-center mb-6">
+                            <div className="w-16 h-16 bg-primary-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-primary-500/30">
+                                <svg className="w-8 h-8 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                </svg>
+                            </div>
+                            <h3 className="text-xl font-bold text-white mb-2">Node Authorization</h3>
+                            <p className="text-sm text-white/50 leading-relaxed">
+                                The node has been restarted and your session is cleared. Enter your 4-digit PIN to re-authorize management access.
+                            </p>
+                        </div>
+
+                        <div className="space-y-4">
+                            <input
+                                type="password"
+                                maxLength={4}
+                                autoFocus
+                                placeholder="● ● ● ●"
+                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-4 text-center text-3xl tracking-[0.5em] font-bold text-primary-400 focus:outline-none focus:border-primary-500 transition-all placeholder:tracking-normal placeholder:text-lg placeholder:text-white/10"
+                                value={adminPinInput}
+                                onChange={(e) => setAdminPinInput(e.target.value.replace(/\D/g, ''))}
+                                onKeyDown={(e) => e.key === 'Enter' && handleQuickAuth()}
+                            />
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <button
+                                    onClick={() => {
+                                        WalletProvider.logout();
+                                        router.push('/login');
+                                    }}
+                                    className="px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 text-sm font-medium transition-all"
+                                >
+                                    Full Logout
+                                </button>
+                                <button
+                                    onClick={handleQuickAuth}
+                                    disabled={adminPinInput.length < 4}
+                                    className="px-4 py-3 rounded-xl bg-gradient-to-r from-primary-600 to-secondary-600 text-white text-sm font-bold shadow-lg shadow-primary-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-30 disabled:grayscale"
+                                >
+                                    Re-Authorize
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}

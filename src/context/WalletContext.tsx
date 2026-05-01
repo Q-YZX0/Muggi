@@ -8,6 +8,7 @@ interface WalletContextType {
     address: string | null
     isConnected: boolean
     isConnecting: boolean
+    isAdmin: boolean
     connect: () => Promise<void>
     disconnect: () => void
     refreshWallet: () => Promise<void>
@@ -20,6 +21,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     const [username, setUsername] = useState<string | null>(null)
     const [isConnected, setIsConnected] = useState(false)
     const [isConnecting, setIsConnecting] = useState(false)
+    const [isAdmin, setIsAdmin] = useState(false)
     const router = useRouter()
 
     useEffect(() => {
@@ -50,6 +52,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
             if (wallet) {
                 setAddress(wallet.address);
                 setUsername(wallet.username);
+                setIsAdmin(!!wallet.isAdmin);
                 setIsConnected(true);
                 return;
             }
@@ -59,6 +62,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
         setAddress(null);
         setUsername(null);
+        setIsAdmin(false);
         setIsConnected(false);
     }
 
@@ -80,7 +84,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     }
 
     return (
-        <WalletContext.Provider value={{ username, address, isConnected, isConnecting, connect, disconnect, refreshWallet }}>
+        <WalletContext.Provider value={{ username, address, isConnected, isConnecting, isAdmin, connect, disconnect, refreshWallet }}>
             {children}
         </WalletContext.Provider>
     )

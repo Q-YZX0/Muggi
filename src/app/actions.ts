@@ -16,7 +16,10 @@ export async function syncNetworkAction() {
         // We tell the node to start a sync immediately
         const res = await fetch(`${NODE_API}/api/network/sync`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 
+                'Content-Type': 'application/json',
+                'x-internal-sync': 'true' // Use an internal header instead of hardcoded PIN
+            }
         });
 
         if (!res.ok) throw new Error("Node sync failed");
