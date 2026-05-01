@@ -7,13 +7,18 @@ echo "🎨 Iniciando configuración de Muggi (Frontend)..."
 
 # 1. Verificar Node.js y NPM
 if ! command -v node &> /dev/null; then
-    echo "📦 Instalando Node.js (v20)..."
+    echo "📦 Instalando Node.js (v24)..."
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+        curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
         sudo apt install -y nodejs build-essential
     else
-        echo "⚠️  Por favor, instala Node.js manualmente desde https://nodejs.org/"
+        echo "⚠️  Por favor, instala Node.js v24+ manualmente desde https://nodejs.org/"
         exit 1
+    fi
+else
+    NODE_VER=$(node -v | cut -d'v' -f2 | cut -d'.' -f1)
+    if [ "$NODE_VER" -lt 24 ]; then
+        echo "⚠️  Se recomienda Node.js v24+ (Detectado: v$NODE_VER). Algunas funciones de Next.js 16 pueden fallar."
     fi
 fi
 
@@ -22,22 +27,19 @@ echo "📦 Instalando módulos de Muggi..."
 npm install
 
 # 3. Descargar WaraNode (Backend P2P)
-# Se instala dentro de 'wara' para mantener el proyecto organizado
 WARA_NODE_DIR="wara"
+SIBLING_WARA="../Wara"
 WARA_NODE_REPO="https://github.com/Q-YZX0/Wara.git"
 
-if [ ! -d "$WARA_NODE_DIR" ]; then
+if [ -d "$SIBLING_WARA" ]; then
+    echo "ℹ️  WaraNode detectado en carpeta hermana ($SIBLING_WARA). Usando instalación de desarrollo."
+elif [ ! -d "$WARA_NODE_DIR" ]; then
     echo "📡 Descargando WaraNode desde el repositorio oficial..."
     git clone "$WARA_NODE_REPO" "$WARA_NODE_DIR"
     
     echo "📦 Configurando WaraNode..."
     cd "$WARA_NODE_DIR"
-    # Ejecutar el script de despliegue propio de wara-node
-    if [ -f "deploy_node.sh" ]; then
-        bash deploy_node.sh
-    else
-        npm install
-    fi
+    npm install
     cd - > /dev/null
 else
     echo "ℹ️  WaraNode ya está instalado en $WARA_NODE_DIR"

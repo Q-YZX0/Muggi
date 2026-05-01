@@ -6,7 +6,14 @@ $ErrorActionPreference = "Stop"
 Write-Host "Iniciando configuracion de Muggi para Windows..." -ForegroundColor Cyan
 
 # 1. Verificar Node.js
-if (!(Get-Command node -ErrorAction SilentlyContinue)) {
+$nodeVersion = node -v
+if ($nodeVersion -match "v(\d+)") {
+    $major = [int]$Matches[1]
+    if ($major -lt 24) {
+        Write-Host "⚠️ Se recomienda Node.js v24+ (Detectado: $nodeVersion). Algunas funciones de Next.js 16 pueden fallar." -ForegroundColor Yellow
+    }
+}
+else {
     Write-Host "Node.js no encontrado. Por favor, instalalo desde https://nodejs.org/" -ForegroundColor Red
     exit
 }
@@ -17,29 +24,19 @@ npm install
 
 # 3. Configurar WaraNode (Backend P2P)
 $WARA_NODE_DIR = "wara"
-# Usamos el repo oficial de Wara
+$SIBLING_WARA = "../Wara"
 $WARA_NODE_REPO = "https://github.com/Q-YZX0/Wara.git"
 
-if (!(Test-Path $WARA_NODE_DIR)) {
+if (Test-Path $SIBLING_WARA) {
+    Write-Host "WaraNode detectado en carpeta hermana ($SIBLING_WARA). Usando instalacion de desarrollo." -ForegroundColor Cyan
+}
+elseif (!(Test-Path $WARA_NODE_DIR)) {
     Write-Host "Descargando WaraNode desde el repositorio oficial..." -ForegroundColor Yellow
     git clone $WARA_NODE_REPO $WARA_NODE_DIR
     
     Write-Host "Configurando WaraNode..." -ForegroundColor Yellow
     Set-Location $WARA_NODE_DIR
-    
-    # Verificar si hay script de despliegue para Windows (setup_node.ps1)
-    if (Test-Path "setup.ps1") {
-        Write-Host "Ejecutando script de configuracion de WaraNode..." -ForegroundColor Cyan
-        powershell -NoProfile -ExecutionPolicy Bypass -File ".\setup.ps1"
-    }
-    elseif (Test-Path "setup.sh") {
-        Write-Host "Nodo descargado. Se recomienda usar Git Bash para ejecutar deploy_node.sh si es necesario." -ForegroundColor Blue
-        npm install
-    }
-    else {
-        npm install
-    }
-    
+    npm install
     Set-Location ..
 }
 else {
