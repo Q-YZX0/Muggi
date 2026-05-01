@@ -1,30 +1,19 @@
-import { PrismaClient } from '@prisma/client';
-import { getTokenBalance } from '@/lib/web3';
-
-const prisma = new PrismaClient();
+import { getApiUrl } from '@/lib/node-helpers';
 
 export const dynamic = 'force-dynamic';
 
 export default async function RankingPage() {
-    // 1. Get all users who have linked a wallet
-    const users = await prisma.user.findMany({
-        where: { walletAddress: { not: null } },
-        select: { name: true, walletAddress: true, reputation: true }
-    });
-
-    // 2. Fetch REAL On-Chain Balances for each
-    const leaderboard = await Promise.all(users.map(async (u) => {
-        const balance = await getTokenBalance(u.walletAddress!);
-        return {
-            name: u.name || 'Anonymous',
-            address: u.walletAddress!,
-            reputation: u.reputation,
-            balance: parseFloat(balance)
-        };
-    }));
-
-    // 3. Sort by Balance (Descending)
-    leaderboard.sort((a, b) => b.balance - a.balance);
+    // 1. Fetch Leaderboard from Wara Node API
+    let leaderboard = [];
+    try {
+        const res = await fetch(getApiUrl('/api/leaderboard/users'), { cache: 'no-store' });
+        if (res.ok) {
+            const data = await res.json();
+            leaderboard = data.users || [];
+        }
+    } catch (e) {
+        console.error("Failed to fetch leaderboard from node", e);
+    }
 
     return (
         <div className="min-h-screen bg-gray-900 text-white p-8">
@@ -47,7 +36,7 @@ export default async function RankingPage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-700">
-                            {leaderboard.map((user, index) => (
+                            {leaderboard.map((user: any, index: number) => (
                                 <tr key={user.address} className="hover:bg-gray-700/50 transition-colors">
                                     <td className="p-4 font-mono text-gray-500">#{index + 1}</td>
                                     <td className="p-4 font-bold flex items-center gap-3">
