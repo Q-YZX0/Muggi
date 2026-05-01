@@ -10,7 +10,7 @@
 
 Muggi isn't just a UI; it's your personal gateway to a global, user-owned network.
 
--   **💎 Premium Aesthetics**: A state-of-the-art "Glassmorphic" interface built with **Tailwind CSS v4** and **Next.js 15**.
+-   **💎 Premium Aesthetics**: A state-of-the-art "Glassmorphic" interface built with **Tailwind CSS v4.2.4** and **Next.js 16.2.4**.
 -   **📺 Unified Player**: High-performance HLS streaming with integrated **Gasless Rewards** – earn as you watch (or host).
 -   **🏛️ Direct Governance**: Participate in the Wara DAO. Vote on new titles, verify links, and build the network's reputation of trust.
 -   **🔌 Node Cockpit**: Complete control over your local or remote WaraNodes. Monitor bandwidth, manage storage, and sync your identity seamlessly.
@@ -21,9 +21,9 @@ Muggi isn't just a UI; it's your personal gateway to a global, user-owned networ
 
 Muggi is built using the latest industry standards for web and blockchain:
 
--   **Frontend**: Next.js 15 (App Router), React 19, Tailwind CSS v4.
--   **Node Connection**: Direct P2P API interaction with `WaraNode`.
--   **Local Storage**: Prisma & SQLite for local profiles and caching.
+-   **Frontend**: Next.js 16.2.4 (App Router), React 19.2.5, Tailwind CSS v4.2.4.
+-   **Node Connection**: Direct P2P API interaction with `WaraNode` **(Requires v0.1.4+)**.
+-   **Local Storage**: Prisma 7.8.0 & SQLite for local profiles and caching.
 
 ---
 
@@ -32,7 +32,7 @@ Muggi is built using the latest industry standards for web and blockchain:
 Setting up your Sovereign Hub is easy and automated.
 
 ### 1. Requirements
--   **Node.js 20+**
+-   **Node.js 25+** (Based on @types/node)
 -   **Git**
 
 ### 2. Quick Installation
@@ -41,7 +41,7 @@ Setting up your Sovereign Hub is easy and automated.
 ```bash
 git clone https://github.com/Q-YZX0/Muggi.git
 cd Muggi
-bash ./setup.sh
+bash ./setup_linux.sh
 ```
 
 **Windows (PowerShell):**

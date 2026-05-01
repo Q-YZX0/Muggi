@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "concurrently \"next dev\"",
-    "dev:all": "concurrently \"cd wara && npm run start\" \"next dev\"",
-    "dev:node": "concurrently \"cd wara && npm run start\"",
+    "dev:all": "concurrently \"cd Wara && npm run start\" \"next dev\"",
+    "dev:node": "concurrently \"cd Wara && npm run start\"",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
